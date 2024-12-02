@@ -102,6 +102,16 @@ class Environment(gym.Env):
         self.action_space = gym.spaces.Discrete(num_nodes)
         self.observation_space = gym.spaces.Box(low=MIN_OBS, high=MAX_OBS, shape=(num_nodes, 1), dtype=float)
 
+    # Action masks: always valid?
+    def action_masks(self):
+        valid_actions = np.ones(self.num_nodes, dtype=bool)
+        for i in range(self.num_nodes):
+            valid_actions[i] = True
+        
+        print("[Action Masking] Valid actions: {} |".format(valid_actions))
+        return valid_actions
+
+
     def step(self, action):
         # Note: sizes are in bytes, times are in seconds
         frame_size = self.frame_sizes[action][self.frame_idx]

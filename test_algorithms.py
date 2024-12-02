@@ -1,5 +1,6 @@
 import numpy as np
-import tqdm
+
+from tqdm import tqdm
 from envs.environment import Environment
 
 
@@ -25,16 +26,20 @@ def main():
                         cost_weight=cost_weight, bandwidth_weight=bandwidth_weight, latency_weight=latency_weight, gini_weight=gini_weight, episodes=episodes,
                         episode_length=episode_length, call_duration_r=call_duration_r)
 
-    for _ in tqdm(range(episodes)):
+    for i in tqdm(range(episodes)):
+        print(i)
+
         obs = env.reset()
-        action_mask = np.array(env.env_method("action_masks"))
+        action_mask = env.action_masks()
         done = False
 
         while not done:
             action = np.random.choice(np.arange(num_nodes), p=action_mask)
             obs, reward, done, info = env.step(action)
-            action_mask = np.array(env.env_method("action_masks"))
+            action_mask = env.action_masks()
 
+            print(f"Action: {action} | Reward: {reward} | Done: {done}")
+            return_ += reward
     env.close()
 
 
