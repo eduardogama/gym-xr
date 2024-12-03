@@ -8,7 +8,6 @@ def main():
     num_nodes = 4  # 4, 8, 12, 16, 32
     
     reward_function = 'multi'
-    alg = 'dqn_deepsets'
     strategy = "cost/"
     path = "data/train/v2-nov-dec/nodes/"
     
@@ -22,24 +21,35 @@ def main():
     call_duration_r = 1
 
 
-    env = Environment(num_nodes=num_nodes, reward_function=reward_function, strategy=strategy, path=path,
-                        cost_weight=cost_weight, bandwidth_weight=bandwidth_weight, latency_weight=latency_weight, gini_weight=gini_weight, episodes=episodes,
-                        episode_length=episode_length, call_duration_r=call_duration_r)
+    env = Environment(
+        num_nodes=num_nodes, 
+        reward_function=reward_function, 
+        strategy=strategy, 
+        path=path,
+        cost_weight=cost_weight, 
+        bandwidth_weight=bandwidth_weight, 
+        latency_weight=latency_weight, 
+        gini_weight=gini_weight, 
+        episodes=episodes,
+        episode_length=episode_length, 
+        call_duration_r=call_duration_r
+    )
 
-    for i in tqdm(range(episodes)):
-        print(i)
-
+    for _ in tqdm(range(episodes)):
         obs = env.reset()
-        action_mask = env.action_masks()
+        action_mask = env.action_masks().astype(float)  # Convert action_mask to float
         done = False
 
         while not done:
+            action_mask /= action_mask.sum()  # Normalize action_mask
             action = np.random.choice(np.arange(num_nodes), p=action_mask)
+            
             obs, reward, done, info = env.step(action)
-            action_mask = env.action_masks()
+            action_mask = env.action_masks().astype(float)  # Convert action_mask to float
 
             print(f"Action: {action} | Reward: {reward} | Done: {done}")
             return_ += reward
+
     env.close()
 
 
