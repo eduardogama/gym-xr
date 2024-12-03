@@ -67,6 +67,7 @@ class Environment(gym.Env):
         super(Environment, self).__init__()
 
         self.frame_idx = 0
+        self.frame_time_left = 0
         
         self.timer_remote_tasks = pd.read_csv(
             f'/{os.getcwd()}/timer_server_gpu_4k.csv',
@@ -83,6 +84,8 @@ class Environment(gym.Env):
                 f'{os.getcwd()}/trace.csv'
             ).values
         ).flatten()
+
+        self.curr_t_idx = 0
 
         self.obs_low = np.array([0] * 11)
         self.obs_high = np.array([10e6, 100, 100, 500, 5, 10e6, 10e6, 10e6, 10e6, 10e6, 10e6])
@@ -111,21 +114,20 @@ class Environment(gym.Env):
         print("[Action Masking] Valid actions: {} |".format(valid_actions))
         return valid_actions
 
+    def get_frame_size(self, frame_idx):
+        return np.random.randint(1150000, 1400000)
 
     def step(self, action):
-        # Note: sizes are in bytes, times are in seconds
-        frame_size = self.frame_sizes[action][self.frame_idx]
-        
-        # Simulate environment response
-        processing_time = self.get_processing_time(frame_size, action)
-        edge_node_load = self.get_edge_node_load() if action == 1 else 0
+        frame_size = sum(self.get_frame_size(self.frame_idx + i) for i in range(30))
+        print(f"Frame size: {frame_size} | Action: {action}")        
 
         delay = 0
 
+
         while frame_size > 1e-8:  # floating number business
-
-            throuput = self.trace[self.curr_t_idx] / 8.0 * 1e6  # bytes/second            
-
+            throuput = self.trace[self.curr_t_idx] / 8.0 * 1e6
+            
+            print(f"Throughput: {throuput} | Frame size: {frame_size} | Frame time left: {self.frame_time_left}")
             frame_time_used = min(self.frame_time_left, frame_size / throuput)
 
             frame_size -= throuput * frame_time_used
